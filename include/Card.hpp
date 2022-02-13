@@ -19,6 +19,8 @@ public:
 	Card();
 	~Card();
 
+	Card(int specific);
+
 	void createCard(std::vector<int> &cardVector);
 
 	int getcardValue();

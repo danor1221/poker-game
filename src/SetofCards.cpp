@@ -8,6 +8,52 @@ SetOfCards::~SetOfCards()
 {}
 
 
+
+
+
+SetOfCards::SetOfCards(std::vector<std::vector<int>> desiredCards, int i)
+{
+	thisSet = desiredCards[i];
+}
+
+void SetOfCards::dealSpecific()
+{
+	for (int j = 0; j < 2; ++j)
+	{
+		int nextCard = thisSet[j];
+		Card newCard = Card(nextCard);
+		setofcards.push_back(newCard);
+	}
+}
+
+void SetOfCards::dealSpecificFlop()
+{
+	for (int j = 2; j < 5; ++j)
+	{
+		int nextCard = thisSet[j];
+		Card newCard = Card(nextCard);
+		setofcards.push_back(newCard);
+	}	
+}
+
+void SetOfCards::dealSpecificTurn()
+{
+	int nextCard = thisSet[5];
+	Card newCard = Card(nextCard);
+	setofcards.push_back(newCard);
+}
+
+void SetOfCards:: dealSpecificRiver()
+{
+	int nextCard = thisSet[6];
+	Card newCard = Card(nextCard);
+	setofcards.push_back(newCard);
+}
+
+
+
+
+
 void SetOfCards::dealSetOfCards(std::vector<int> &cardVector)
 {
 	// run these two lines twice to append 2 cars to this player's set of cards

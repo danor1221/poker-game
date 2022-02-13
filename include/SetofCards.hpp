@@ -13,6 +13,12 @@ public:
 	SetOfCards();
 	~SetOfCards();
 
+	SetOfCards(std::vector<std::vector<int>> desiredCards, int i);
+	void dealSpecific();
+	void dealSpecificFlop();
+	void dealSpecificTurn();
+	void dealSpecificRiver();
+
 	void dealSetOfCards(std::vector<int> &cardVector);
 	std::vector<Card> getsetofcards();
 
@@ -22,5 +28,6 @@ public:
 
 private:
 	std::vector<Card> setofcards;
+	std::vector<int> thisSet;
 };
 

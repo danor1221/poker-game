@@ -36,7 +36,12 @@ int main()
 	int enterednoPlayers;
 	std::cin >> enterednoPlayers;
 
-	game = new Game(enterednoPlayers);
+
+	std::cout << "Enter testFlag: 1 for test, 0 for no test" << std::endl;
+	int testFlag;
+	std::cin >> testFlag;
+
+	game = new Game(enterednoPlayers, testFlag);
 
 /*
 	std::vector<Player> path;
@@ -57,7 +62,14 @@ int main()
 	{
 		// call next hand
 		game->nextHand();
-		game->setRunningFalse();
+		//game->setRunningFalse();
+		std::cout << "" << std::endl;
+		std::cout << "" << std::endl;
+		std::cout << "" << std::endl;
+		std::cout << "" << std::endl;
+		std::cout << "Press any key to move to the next hand";
+		std::string wait;
+		std::cin >> wait;
 	}
 
 

@@ -26,19 +26,20 @@ public:
 
 	void Deal();
 
-	void preFlop(std::vector<MoneyCount> moneycount); // This vector should probably be passed in by reference
-	void Flop(std::vector<MoneyCount> moneycount);
-	void Turn(std::vector<MoneyCount> moneycount);
-	void River(std::vector<MoneyCount> moneycount);
+	void preFlop(std::vector<MoneyCount> &moneycount); // This vector should probably be passed in by reference
+	void Flop(std::vector<MoneyCount> &moneycount);
+	void Turn(std::vector<MoneyCount> &moneycount);
+	void River(std::vector<MoneyCount> &moneycount);
 
 	// This function runs the calling/betting/raising/checking/folding while loop. i and j are the starting and previous players. used to define where the action starts and previous players currently helping the decide moves. endint is the current endpoint of the action. When raising and betting is implemented, whoever raises/bets most recently becomes the endint.
-	void runTheAction(int i, int j, int endint, std::vector<MoneyCount> moneycount);
+	void runTheAction(int i, int j, int endint, std::vector<MoneyCount> &moneycount);
 
 	void findTheWinner();
 
 
 	// Get function to get the pot value and winning player(s) before this instance of Hand is deleted
-
+	std::vector<int> getWinningPlayer();
+	double getPot();
 
 
 	void printThePlayersCards();
@@ -50,7 +51,9 @@ public:
 	void printAllRiverPlayersCards();
 
 	void testHandValue(int playerno);
-private:
+
+
+protected:
 
 	std::vector<Player> players;
 	std::vector<std::vector<Card>> PlayersCards;
@@ -59,9 +62,13 @@ private:
 
 	std::map<int, std::string> pointValueToName{ {0, "nothing"}, {1, "pair"}, {2, "two pair"}, {3, "trips"}, {4, "straight"}, {5, "flush"}, {6, "full house"}, {7, "quads"}, {8, "straight flush"} };
 
+	std::map<int, int> seatPosPlayer;
+	
 	bool action;
 	double pot = 0.0;
 	int numPlayers = 0;
 
 	std::vector<int> winningPlayer; // This is a vector in case of actual draws
+
+	Player humanPly;
 };

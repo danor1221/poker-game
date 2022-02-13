@@ -6,7 +6,11 @@ Hand::Hand(std::vector<Player> players)
 {
 	for (Player player: players)
 	{
+		std::cout << "Player " << player.getPlayerNo() << " sat at " << player.getSeatPos() << std::endl;
+		seatPosPlayer.insert( { player.getSeatPos(), player.getPlayerNo() } );
 		numPlayers++;
+		if (player.getPlayerNo() == 0)
+			humanPly = player;
 	}
 }
 	
@@ -23,25 +27,35 @@ void Hand::Deal()
 		PlayersCards.push_back(individualPlayerssetofcards.getsetofcards());
 
 		// setup the betting space vector here as well
-		bettingspace.push_back(BettingSpace());		
+		bettingspace.push_back(BettingSpace());
 	}
 }
 
 
-void Hand::preFlop(std::vector<MoneyCount> moneycount)
+void Hand::preFlop(std::vector<MoneyCount> &moneycount)
 {
 	// take blinds from players/positions 0 and 1
-	(moneycount[0]).removeSmallBlind();
-	(moneycount[1]).removeBigBlind();
 
-	(bettingspace[0]).addAmount(0.5);
-	(bettingspace[1]).addAmount(1);
+	int smllBlnd = seatPosPlayer[0];
+	int bgBlnd = seatPosPlayer[1];
+
+	std::cout << "smllBlnd is at: " << smllBlnd << std::endl;
+	std::cout << "bgBlnd is at: " << bgBlnd << std::endl;
+
+	(moneycount[smllBlnd]).removeSmallBlind();
+	(moneycount[bgBlnd]).removeBigBlind();
+
+	(bettingspace[smllBlnd]).addAmount(0.5); // values should be assigned as variable blinds
+	(bettingspace[bgBlnd]).addAmount(1);
+
+
+	int firstToAct = seatPosPlayer[2];
 
 	action = true;
-	int i = 2;
-	int j = i-1;
+	int i = firstToAct;
+	int j = seatPosPlayer[1];
 
-	int endint = 2; // set the last player to play to end action. Is actually the last player+1
+	int endint = firstToAct; // set the last player to play to end action. Is actually the last player+1
 
 	runTheAction(i, j, endint, moneycount);
 
@@ -55,9 +69,9 @@ void Hand::preFlop(std::vector<MoneyCount> moneycount)
 
 
 
-void Hand::Flop(std::vector<MoneyCount> moneycount)
+void Hand::Flop(std::vector<MoneyCount> &moneycount)
 {
-	// Need to add the flop cards
+	// add flop cards
 
 	SetOfCards flopCardsObj = SetOfCards();
 	flopCardsObj.dealFlopCards(cardVector);
@@ -73,27 +87,31 @@ void Hand::Flop(std::vector<MoneyCount> moneycount)
 	}
 
 
-	action = true;
-	int i = 0;
-	int j = numPlayers-1;
+	int firstToAct = seatPosPlayer[0];
 
-	int endint = numPlayers;
+	action = true;
+	int i = firstToAct;
+	int j = seatPosPlayer[numPlayers-1];
+
+	int endint = j+1; // is essentially the same as firstToAct like in pre-Flop()
 
 	runTheAction(i, j, endint, moneycount);
 
 	std::cout << "Post-Flop Action complete" << std::endl;
 	std::cout << "Pot stands at *PoundSymbol*" <<  pot << std::endl;
 	printTheBettingSpace();
-
 }
 
-void Hand::Turn(std::vector<MoneyCount> moneycount)
+void Hand::Turn(std::vector<MoneyCount> &moneycount)
 {
 	// Need to add turn card
+
 	SetOfCards turnCardObj = SetOfCards();
 	turnCardObj.dealTurnCard(cardVector);
 
 	std::vector<Card> turnCard = turnCardObj.getsetofcards();
+
+
 	for (std::size_t f = 0; f < players.size(); ++f)
 	{
 		(PlayersCards[f]).push_back(turnCard[0]);
@@ -101,11 +119,13 @@ void Hand::Turn(std::vector<MoneyCount> moneycount)
 
 
 
-	action = true;
-	int i = 0;
-	int j = numPlayers-1;
+	int firstToAct = seatPosPlayer[0];
 
-	int endint = numPlayers;
+	action = true;
+	int i = firstToAct;
+	int j = seatPosPlayer[numPlayers-1];
+
+	int endint = j+1;
 
 	runTheAction(i, j, endint, moneycount);
 
@@ -114,13 +134,16 @@ void Hand::Turn(std::vector<MoneyCount> moneycount)
 	printTheBettingSpace();
 }
 
-void Hand::River(std::vector<MoneyCount> moneycount)
+void Hand::River(std::vector<MoneyCount> &moneycount)
 {
 	// Need to add River card
+
 	SetOfCards riverCardObj = SetOfCards();
 	riverCardObj.dealRiverCard(cardVector);
 
 	std::vector<Card> riverCard = riverCardObj.getsetofcards();
+
+	
 	for (std::size_t f = 0; f < players.size(); ++f)
 	{
 		(PlayersCards[f]).push_back(riverCard[0]);
@@ -128,11 +151,13 @@ void Hand::River(std::vector<MoneyCount> moneycount)
 
 
 
-	action = true;
-	int i = 0;
-	int j = numPlayers-1;
+	int firstToAct = seatPosPlayer[0];
 
-	int endint = numPlayers;
+	action = true;
+	int i = firstToAct;
+	int j = seatPosPlayer[numPlayers-1];
+
+	int endint = j+1;
 
 	runTheAction(i, j, endint, moneycount);
 
@@ -148,76 +173,97 @@ void Hand::River(std::vector<MoneyCount> moneycount)
 
 
 
-void Hand::runTheAction(int i, int j, int endint, std::vector<MoneyCount> moneycount)
+void Hand::runTheAction(int plyrToAct, int j, int endint, std::vector<MoneyCount> &moneycount)
 {
+	std::cout << plyrToAct << ", " << j << ", " << endint << std::endl;
+
 	while(action)
 	{
-		// call for player 2 (third player) to make a move then player 3 etc until all is equal. (need to make sure about checking small and big blind positions) After sete action to false and exit while loop and end preFlop stage
-		double thisPlayerAmount = (bettingspace[i]).getAmount();
+		// call for player 2 (third player) to make a move then player 3 etc until all is equal. (need to make sure about checking small and big blind positions) After set action to false and exit while loop and end preFlop stage
+		double thisPlayerAmount = (bettingspace[plyrToAct]).getAmount(); // set i equal to index of player in Players with seatPos i
 		double previousPlayerAmount = (bettingspace[j]).getAmount();
 
+		// variable to store value used for bet/raise
+		double betValue;
+
 		int actionChosen = -1;
-		actionChosen = (players[i]).action(thisPlayerAmount, previousPlayerAmount);
+		actionChosen = (players[plyrToAct]).action(thisPlayerAmount, previousPlayerAmount, betValue);
 
 
 		printTheBettingSpace();
 
 
-		if (i == 0)
+		if (plyrToAct == humanPly.getPlayerNo())
 		{
 			// get the human player's input
 			// of course i == 0 will need to be edited as players/blinds move
 			actionChosen = -1; 
 
-			std::cout << "Enter desired action: 0 for check, 1 for call" << std::endl;
+			std::cout << "Enter desired action: 0 for check, 1 for call, 2 for bet/raise (value to raise to not by)" << std::endl;
 			std::cin >> actionChosen;
+
+			if (actionChosen == 2)
+				std::cin >> betValue;
 		}
 
 
 		if (actionChosen == 0)
 		{
 			// this is a check
-			std::cout << "Player " << i << " checks" << std::endl;
+			std::cout << "Player " << plyrToAct << " checks" << std::endl;
 
-			i++;
+			plyrToAct++;
 			j++;
 		}
 		else if (actionChosen == 1)
 		{
 			// this is a call
-			(moneycount[i]).removeAmount(previousPlayerAmount - thisPlayerAmount);
-			(bettingspace[i]).addAmount(previousPlayerAmount - thisPlayerAmount);
+			(moneycount[plyrToAct]).removeAmount(previousPlayerAmount - thisPlayerAmount);
+			(bettingspace[plyrToAct]).addAmount(previousPlayerAmount - thisPlayerAmount);
 
-			std::cout << "Player " << i << " calls" << std::endl;
-			i++;
+			std::cout << "Player " << plyrToAct << " calls" << std::endl;
+			plyrToAct++;
+			j++;
+		}
+		else if (actionChosen == 2)
+		{
+			// this is a bet/raise
+			(moneycount[plyrToAct]).removeAmount( betValue - (bettingspace[plyrToAct]).getAmount() );
+			(bettingspace[plyrToAct]).addAmount( betValue - (bettingspace[plyrToAct]).getAmount() );
+
+			std::cout << "Player " << plyrToAct << " raises to " << betValue << std::endl;
+			
+			// set endint to player that raised/bet
+			endint = plyrToAct;
+			
+			plyrToAct++;
 			j++;
 		}
 
 		else if (actionChosen == -1)
 		{
 			std::cout << "error chosing action!" << std::endl;
-			i++;
+			plyrToAct++;
 			j++;
 		}
 
 		std::cout << "" << std::endl;
 
-		if (i == endint)
+		if (plyrToAct == endint or (endint == 0 and plyrToAct == numPlayers))
 		{
-			// Big blind just played
-			// in order to generalise this, set the most recent player to raise/bet to be the endint integer
+			// Last player to act has. The or statement accounts for cyclic nature of the game
 			action = false;
 		}
 
 
-		if (i == numPlayers)
+		if (plyrToAct == numPlayers)
 		{
-			i = 0;
+			plyrToAct = 0;
 			j = numPlayers-1;
 		}
 		else if (j == numPlayers)
 		{
-			i = 1;
+			plyrToAct = 1;
 			j = 0;
 		}
 	}
@@ -246,16 +292,14 @@ void Hand::findTheWinner()
 	// map that holds count of each point type. ed how many flushes etc to detect draws
 	std::map<int, int> typeCount;
 
-	// vector of vectors containing cards for each player. IGNORE THIS USE PRIVATE MEMEBER OF HAND.CPP PlayersCards
-	std::vector<std::vector<int>> allPlayersCardsAValue;
-	std::vector<std::vector<int>> allPlayersCardsSuit;
+
+	// Should change to a smart pointer
+	HandValue* handvalue = new HandValue(PlayersCards);
+	handvalue->getPlayerPointsAndOther(playerPoints, playerToPoint, typeCount);
+	delete handvalue;
 
 
-
-//	HandValue* handvalue = newHandValue(PlayersCards);
-
-
-
+/*
 	int n = players.size();
 
 	for (int j = 0; j < n; ++j)
@@ -284,7 +328,7 @@ void Hand::findTheWinner()
 		playerToPoint.insert({j, playersHandValue});
 		typeCount[playersHandValue] += 1;
 	}
-
+*/
 
 	// we will rewrite HandValue class as a namespace set of functions
 	// NOTE FOR FUTURE DAN. Use new map playerToPoint to grab those players who have drawn as well as their points. Pass this map into new class? or maybe pass into HandValue class? Then work out who has higher straight or flush or whatever is passed in. Am currently thinking a new class would be more appropriate. Also maybe try to create system that says this person wins with pair of aces or whatever so it actually says that. Also need to add function to Game.cpp that moves winnings about. Note, moneycount has been identified to maybe be passed by reference into some above functions.
@@ -294,39 +338,45 @@ void Hand::findTheWinner()
 
 
 	// Find iterator to max value in playerPoints
-	std::vector<int>::iterator result;
-	result = std::max_element(playerPoints.begin(), playerPoints.end());
+	std::vector<int>::iterator result = std::max_element(playerPoints.begin(), playerPoints.end());
 
 
 	// check if no. times the max value has been found. If greater than or equal to two need to investigate further
 	int numWin = typeCount.find(*(result))->second;
+
 	if (numWin >= 2)
 	{
 		std::cout << "Draw found need to investigate further" << std::endl;
-		HVI::InvestigateDraw(playerToPoint, *(result), winningPlayer, numWin, PlayersCards);// PASS DOWN PlayersCards to see them
+		HVI* hvi = new HVI(playerToPoint, *(result), numWin, PlayersCards);
+		hvi->InvestigateDraw();
+		winningPlayer = hvi->getWinningPlayer();
+		delete hvi;
 	}
 
 	else
-		std::cout << "Winner is player: " << std::distance(playerPoints.begin(), result) << " with a " << pointValueToName.find(*(result))->second<< std::endl;
-
-
-
-
-	// findTheWinner should maybe return an integer deciding who the winner is so the Game class can then move winnings to them
-	
-
-
-
-
-	// Unhash below for loop to run testHandValue function. Should be run with 9 players.
-	/*
-	for (int j = 0; j < n; ++j)
 	{
-		testHandValue(j);
+		std::cout << "Winner is player: " << std::distance(playerPoints.begin(), result) << " with a " << pointValueToName.find(*(result))->second<< std::endl;
+		winningPlayer.push_back(std::distance(playerPoints.begin(), result));
 	}
-	*/
-
 }
+
+
+
+std::vector<int> Hand::getWinningPlayer()
+{
+	return winningPlayer;
+}
+
+double Hand::getPot()
+{
+	return pot;
+}
+
+
+
+
+
+
 
 
 
@@ -387,7 +437,8 @@ void Hand::printAllRiverPlayersCards()
 
 
 
-
+/*
+// This function is now broken as HandValue has been changed
 void Hand::testHandValue(int playerno)
 {
 	// playerno will determine what each player will be thought to have.
@@ -400,11 +451,11 @@ void Hand::testHandValue(int playerno)
 		std::vector<int> thisPlayersCardsAValue {1, 13, 12, 11, 10, 5, 4};
 		std::vector<int> thisPlayersCardsSuit {1, 1, 1, 1, 1, 4, 4};
 		
-		/* // Test case with 6 clubs
+		 // Test case with 6 clubs
 		std::vector<int> thisPlayersCardsValue {3, 46, 47, 48, 49, 52, 50};
 		std::vector<int> thisPlayersCardsAValue {3, 7, 8, 9, 10, 13, 11};
 		std::vector<int> thisPlayersCardsSuit {1, 4, 4, 4, 4, 4, 4};
-		*/
+		
 
 		HandValue* handvalue = new HandValue(thisPlayersCardsAValue, thisPlayersCardsSuit);
 
@@ -525,3 +576,11 @@ void Hand::testHandValue(int playerno)
 		std::cout << "Player " << playerno << " should have 0, program finds: " << playersHandValue << " (nothing/highcard)" << std::endl;
 	}
 }
+*/
+
+
+
+
+
+
+

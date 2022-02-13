@@ -7,33 +7,33 @@
 #include <bits/stdc++.h>
 
 //#include "Game.hpp"
+#include "Card.hpp"
 
 
 
 class HandValue
 {
 public:
-	HandValue(std::vector<int> thisPlayersCardsAValue, std::vector<int> thisPlayersCardsSuit);
+	HandValue(std::vector<std::vector<Card>> PlayersCards);
 	~HandValue();
+
+	// gets by reference
+	void getPlayerPointsAndOther(std::vector<int> &playerPoints, std::map<int, int> &playerToPoint, std::map<int, int> &typeCount);
+
 
 	int getHandValue();
 
 
-	bool checkHit()
-	{
-		return hit;
-	}
 
 
-
-	void checkStraightFlush();
-	void checkQuads();
-	void checkFullHouse();
-	void checkFlush();
-	void checkStraight();
-	void checkTrips();
-	void checkTwoPair();
-	void checkPair();
+	bool checkStraightFlush();
+	bool checkQuads();
+	bool checkFullHouse();
+	bool checkFlush();
+	bool checkStraight();
+	bool checkTrips();
+	bool checkTwoPair();
+	bool checkPair();
 
 	template <typename T>
 	void findDuplicates(std::vector<T> &vecOfElements, std::map<T, int> &countMap);
@@ -42,9 +42,9 @@ public:
 
 
 private:
-	std::vector<int> thisPlayersCardsValue;
 	std::vector<int> thisPlayersCardsAValue;
 	std::vector<int> thisPlayersCardsSuit;
 
-	bool hit = false;
+	std::vector<std::vector<Card>> PlayersCards;
 };
+

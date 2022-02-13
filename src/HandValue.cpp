@@ -1,8 +1,9 @@
 #include "HandValue.hpp"
 
 
-HandValue::HandValue(std::vector<int> thisPlayersCardsAValue, std::vector<int> thisPlayersCardsSuit)
-	: thisPlayersCardsAValue(thisPlayersCardsAValue), thisPlayersCardsSuit(thisPlayersCardsSuit)
+
+HandValue::HandValue(std::vector<std::vector<Card>> PlayersCards)
+	: PlayersCards(PlayersCards)
 {}
 
 HandValue::~HandValue()
@@ -10,64 +11,79 @@ HandValue::~HandValue()
 
 
 
+void HandValue::getPlayerPointsAndOther(std::vector<int> &playerPoints, std::map<int, int> &playerToPoint, std::map<int, int> &typeCount)
+{
+	int n = PlayersCards.size();
+
+	for (int j = 0; j < n; ++j)
+	{
+		// assign memory?
+		for (int i = 0; i < 7; ++i)
+		{
+			thisPlayersCardsAValue.push_back((PlayersCards[j][i]).getActualValue());
+			thisPlayersCardsSuit.push_back((PlayersCards[j][i]).getSuit());
+		}
+		
+
+		// Get point for current player
+		int playersHandValue = getHandValue();
+		std::cout << "Player " << j << " has: " << playersHandValue << std::endl;
+
+
+		// append into vector of player's points, map of player's points, and map holding count of each point type
+		playerPoints.push_back(playersHandValue);
+		playerToPoint.insert({j, playersHandValue});
+		typeCount[playersHandValue] += 1;
+
+
+		// clear vectors for next player
+		thisPlayersCardsAValue.clear();
+		thisPlayersCardsSuit.clear();
+	}
+}
+
+
+
 int HandValue::getHandValue()
 {
 	// check straight flush
-	checkStraightFlush();
-
-	// check hit
-	if(checkHit())
+	if (checkStraightFlush())
 		return 8;
 
 
 	// check quads
-	checkQuads();
-
-	if(checkHit())
+	if (checkQuads())
 		return 7;
 
 
 	// check full house
-	checkFullHouse();
-
-	if(checkHit())
+	if (checkFullHouse())
 		return 6;
 
 
 	// check flush
-	checkFlush();
-
-	if(checkHit())
+	if (checkFlush())
 		return 5;
 	
 
 	// check straight
-	checkStraight();
-
-	if(checkHit())
+	if (checkStraight())
 		return 4;
 	
 
 	// check trips
-	checkTrips();
-
-	if(checkHit())
+	if (checkTrips())
 		return 3;
 
-
+	
 	// check two pair
-	checkTwoPair();
-
-	if(checkHit())
+	if (checkTwoPair())
 		return 2;
 
 
 	// check pair
-	checkPair();
-
-	if(checkHit())
+	if (checkPair())
 		return 1;
-
 
 
 	// highcard...
@@ -79,21 +95,19 @@ int HandValue::getHandValue()
 
 
 
-
-void HandValue::checkStraightFlush()
+// Bug in this function where the 5 cards that make up the flush are not the same 5 cards that make the straight. Need to fix this
+bool HandValue::checkStraightFlush()
 {
-	checkFlush();
-	if (hit)
-	{
-		hit = false;
-		checkStraight();
-	}
+	if (checkFlush() and checkStraight())
+		return true;
+
+	return false;
 }
 
 
 
 
-void HandValue::checkQuads()
+bool HandValue::checkQuads()
 {
 	std::map<int, int> duplicateElements;
 
@@ -101,15 +115,21 @@ void HandValue::checkQuads()
     findDuplicates(thisPlayersCardsAValue, duplicateElements);
 
 
-    if ((duplicateElements.begin())->second == 4)
-    	hit = true;
+    // Need to iterate as there could be other sets on the board. (other duplicates in duplicateElements)
+    for (auto elem : duplicateElements)
+    {
+    	if (elem.second == 4)
+    		return true;
+	}
 
+	return false;
 }
 
 
 
 
-void HandValue::checkFullHouse()
+// Bug in this function when a player has two trips, a full house is not detected.
+bool HandValue::checkFullHouse()
 {
 	std::map<int, int> duplicateElements;
 
@@ -126,18 +146,19 @@ void HandValue::checkFullHouse()
         	{
         		if (it->second == 3)
         		{
-        			hit = true;
-        			break;
+        			return true;
         		}
         	}
         }
     }
+
+    return false;
 }
 
 
 
 
-void HandValue::checkFlush()
+bool HandValue::checkFlush()
 {
 	std::map<int, int> duplicateElements;
 
@@ -145,24 +166,75 @@ void HandValue::checkFlush()
     findDuplicates(thisPlayersCardsSuit, duplicateElements);
 
 
-    if ((duplicateElements.begin())->second >= 5)
-    	hit = true;
+	// Need to iterate as there is generally other cards of same suit on the board. (other duplicates in duplicateElements)
+    for (auto elem : duplicateElements)
+    {
+    	if (elem.second >= 5)
+    		return true;
+	}
+
+	return false;
 }
 
 
 
-
-void HandValue::checkStraight()
+// There is currently a bug with checking straight where a player has a straight but also a pair which is within the straight. For example, player has 57 and board has 6789A. The bug means a pair of 7s will be found and not a straight as the extra 7 gets in the way of the block of 5 ascending cards. Need to remove duplicates. This may mean iterating fewer than 3 times as no longer 7 cards to check from
+bool HandValue::checkStraight()
 {
 	std::vector<int> sortedAValue;
 
-	// Create sorted vector of suits
+	// Create sorted vector of card values
 	sortedAValue = thisPlayersCardsAValue;
-	sort(sortedAValue.begin(), sortedAValue.end());
 
 
-	// Number of 5-blocks to check in 7 cards. n should be 4 if an ace is present
+
+
+
+
+	// Bug Fix on pairs and trips within the straight
+	std::map<int, int> duplicateElements;
+
+	// Get the duplicate elements in vector
+	findDuplicates(thisPlayersCardsAValue, duplicateElements);
+
+	int numSets = duplicateElements.size();
+
+	// check for pairs
+	if ( std::all_of( duplicateElements.begin(), duplicateElements.end(), [](std::pair<int, int> i){return i.second == 2;} ) and duplicateElements.size() >= 1)
+    {
+    	// remove duplicate pair elements from player's cards
+    	for (auto &elem : duplicateElements)
+    	{
+    		// remove 1 instance of the pair duplicate element
+    		auto it = find(sortedAValue.begin(), sortedAValue.end(), elem.first);
+    		sortedAValue.erase(it);
+    	}
+    }
+
+    // check for trips
+    for (auto &elem : duplicateElements)
+    {
+    	if (elem.second == 3)
+    	{
+    		// remove 1 instance of the trips duplicate element 2 times
+    		auto it = find(sortedAValue.begin(), sortedAValue.end(), elem.first);
+    		sortedAValue.erase(it);
+
+    		it = find(sortedAValue.begin(), sortedAValue.end(), elem.first);
+    		sortedAValue.erase(it);
+
+    		// incremenet numSets by 1
+    		numSets += 1;
+		}
+	}
+	// Bug fix on sets being present ends here	
+
+
+
+
+	// Number of 5-blocks to check in 7 cards. n should be 4 if an ace is present. lower n by numSets 
 	int n = 3;
+	n -= numSets;
 
 	// check for Ace. If Ace is found add 14 to the end of the sortedAValue vector and increment block 5 checker to 4 blocks
 	if ( std::find(sortedAValue.begin(), sortedAValue.end(), 1) != sortedAValue.end() )
@@ -172,6 +244,9 @@ void HandValue::checkStraight()
 	}
 
 
+    // now actually sort the vector in decending order (this way highest straight for a player is detected)
+	sort(sortedAValue.begin(), sortedAValue.end(), std::greater<int>());
+
 
 	// Iterate 3 times to check each block of 5 out of the 7 cards
 	for (int i = 0; i < n; ++i)
@@ -180,26 +255,23 @@ void HandValue::checkStraight()
 		{
 			if (j == (4+i))
 			{
-				hit = true;
-				goto stop;
+				return true;
 			}
 
-			else if (sortedAValue[j+1] != (sortedAValue[j] + 1))
+			else if (sortedAValue[j+1] != (sortedAValue[j] - 1))
 			{
 				break;
 			}
 		}
 	}
 
-	// stop is just a thing that goto runs to to exit multiple loops. The semicolon is just a pass statement.
-	stop:
-		;
+	return false;
 }
 
 
 
 
-void HandValue::checkTrips()
+bool HandValue::checkTrips()
 {
 	std::map<int, int> duplicateElements;
 
@@ -207,13 +279,19 @@ void HandValue::checkTrips()
     findDuplicates(thisPlayersCardsAValue, duplicateElements);
 
 
-    if ((duplicateElements.begin())->second == 3)
-    	hit = true;
+    // Need to iterate as there could be other sets on the board. (other duplicates in duplicateElements)
+    for (auto elem : duplicateElements)
+    {
+    	if (elem.second == 3)
+    		return true;
+	}
+
+	return false;
 }
 
 
 
-void HandValue::checkTwoPair()
+bool HandValue::checkTwoPair()
 {
 	std::map<int, int> duplicateElements;
 
@@ -221,14 +299,16 @@ void HandValue::checkTwoPair()
     findDuplicates(thisPlayersCardsAValue, duplicateElements);
 
 
-    // check for two pairs. Don't need first statement but that function would return true if given a full house. Ofc a full house would be detected above
-    if ( std::all_of( duplicateElements.begin(), duplicateElements.end(), [](std::pair<int, int> i){return i.second == 2;} ) and duplicateElements.size() == 2)
-    	hit = true;
+    // check for two pairs. Don't need first statement but that function would return true if given a full house. Ofc a full house would be detected above. Greater than or equal sign is in case 3 sets of pairs come down lol
+    if ( std::all_of( duplicateElements.begin(), duplicateElements.end(), [](std::pair<int, int> i){return i.second == 2;} ) and duplicateElements.size() >= 2)
+    	return true;
+
+    return false;
 }
 
 
 
-void HandValue::checkPair()
+bool HandValue::checkPair()
 {
 	std::map<int, int> duplicateElements;
 
@@ -236,8 +316,11 @@ void HandValue::checkPair()
     findDuplicates(thisPlayersCardsAValue, duplicateElements);
 
 
+    // No need to iterate in this one as we only want to detect 1 pair. If there were more then we would get two pair
     if ((duplicateElements.begin())->second == 2)
-    	hit = true;
+    	return true;
+
+    return false;
 }
 
 

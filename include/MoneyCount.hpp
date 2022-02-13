@@ -15,8 +15,17 @@ public:
 	void removeSmallBlind();
 	void removeBigBlind();
 
-	void removeAmount(int amount);
+	void removeAmount(double amount);
+
+	void addAmount(double amount);
+
+
+	double getAmount();
 
 private:
-	int amountofmoney;
+	double amountofmoney;
 };
+
+
+
+// This class should probably have a variable that attributes it to specific players

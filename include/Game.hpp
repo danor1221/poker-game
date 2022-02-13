@@ -6,6 +6,7 @@
 #include "Player.hpp"
 #include "MoneyCount.hpp"
 #include "Hand.hpp"
+#include "HandTest.hpp"
 
 //class Hand;
 //class Player;
@@ -19,7 +20,7 @@ class Game
 {
 public:
 
-	Game(int enterednoPlayers);
+	Game(int enterednoPlayers, int testFlag);
 	~Game();
 
 	void createSetOfPlayers(int enterednoPlayers);
@@ -40,4 +41,6 @@ private:
 	bool isRunning;
 	std::vector<Player> players;
 	std::vector<MoneyCount> moneycount;
+
+	bool testCards;
 };

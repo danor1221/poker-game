@@ -7,6 +7,13 @@ Card::Card()
 Card::~Card()
 {}
 
+
+Card::Card(int specific)
+{
+    cardValue = specific;
+    setActualValueAndSuit();
+}
+
 void Card::createCard(std::vector<int> &cardVector)
 {
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
