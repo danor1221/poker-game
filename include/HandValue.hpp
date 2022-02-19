@@ -36,10 +36,13 @@ public:
 	bool checkPair();
 
 	template <typename T>
-	void findDuplicates(std::vector<T> &vecOfElements, std::map<T, int> &countMap);
+	static void findDuplicates(std::vector<T> &vecOfElements, std::map<T, int> &countMap);
 
 
-
+	static void testPrint()
+	{
+		std::cout << "Testing this" << std::endl;
+	}
 
 private:
 	std::vector<int> thisPlayersCardsAValue;

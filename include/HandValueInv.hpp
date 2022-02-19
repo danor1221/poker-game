@@ -7,6 +7,7 @@
 #include <utility>
 #include <bits/stdc++.h>
 
+#include "HandValue.hpp"
 //#include "Game.hpp"
 #include "Card.hpp"
 
@@ -57,11 +58,6 @@ public:
 
 
 	// Utility functions used by above functions
-	template <typename T>
-	void findDuplicates(std::vector<T> &vecOfElements, std::map<T, int> &countMap);
-
-	void changeAce(std::map<int, int> &duplicates);
-
 	int maxKeyInMap(std::map<int, int> &inpMap, bool &draw);
 
 	std::vector<int> maxKeysInMap(std::map<int, int> &inpMap);

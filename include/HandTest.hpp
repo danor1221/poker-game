@@ -28,12 +28,12 @@ public:
 
 private:
 // Straight Flushes
-
+/*
 	std::vector<std::vector<int>> desiredCards{ {15, 30, 12, 11, 10, 41, 33}, 	// pair 	2s
 												{1, 13, 12, 11, 10, 41, 33}, 	// SF 		A K Q J 10
 												{9, 13, 12, 11, 10, 41, 33}, 	// SF 		K Q J 10 9
 												{20, 46, 12, 11, 10, 41, 33} };	// trips 	777
-
+*/
 // Quads
 /*
 	std::vector<std::vector<int>> desiredCards{ {42, 29, 16, 3, 14, 27, 17}, 	// quads 	3333
@@ -118,12 +118,12 @@ private:
 												{28, 38, 18, 26, 50, 12, 27},	// pair 	QQ
 												{29, 30, 18, 26, 50, 12, 27} }; // HC
 */
-/*
+
 	std::vector<std::vector<int>> desiredCards{ {1, 39, 18, 26, 50, 12, 27},	// Two pair AAKK (both split)
 												{14, 51, 18, 26, 50, 12, 27},	// Two pair AAQQ (both split)
 												{28, 38, 18, 26, 50, 12, 27},	// pair 	QQ
 												{29, 30, 18, 26, 50, 12, 27} }; // HC
-*/
+
 /*
 	std::vector<std::vector<int>> desiredCards{ {1, 38, 18, 26, 50, 12, 27},	// Two pair AAQQ (both split)
 												{14, 51, 18, 26, 50, 12, 27},	// Two pair AAQQ (both split)

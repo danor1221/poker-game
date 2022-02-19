@@ -4,7 +4,9 @@
 
 HVI::HVI(std::map<int, int> playerToPoint, int point, int num, std::vector<std::vector<Card>> PlayersCards)
 	: playerToPoint(playerToPoint), point(point), num(num), PlayersCards(PlayersCards)
-{}
+{
+	HandValue::testPrint();
+}
 
 HVI::~HVI()
 {}
@@ -454,7 +456,7 @@ void HVI::compareFlush()
 		std::vector<int> sortedCards;
 
     	// Get the duplicate elements in vector
-    	findDuplicates(drawPlayersCardsSuit[i], duplicateElements);
+    	HandValue::findDuplicates(drawPlayersCardsSuit[i], duplicateElements);
 
 
 		// Need to iterate as there is generally other cards of same suit on the board. (other duplicates in duplicateElements)
@@ -559,7 +561,7 @@ void HVI::compareFullHouse()
 		std::map<int, int> duplicateElements;
 
     	// Get the duplicate elements in vector of each players cards in turn
-    	findDuplicates(drawPlayersCardsAValue[i], duplicateElements);
+    	HandValue::findDuplicates(drawPlayersCardsAValue[i], duplicateElements);
 
     	for (auto elem : duplicateElements)
     	{
@@ -693,7 +695,7 @@ bool HVI::stageTwo(std::map<int, int> &playerToSetValues, int len)
 
 
     	// Get the duplicate elements in vector of each players cards in turn
-    	findDuplicates(drawPlayersCardsAValue[i], duplicateElements);
+    	HandValue::findDuplicates(drawPlayersCardsAValue[i], duplicateElements);
 
 
     	// These temporary variables allow us to get the quads as there may be other sets on the board. Use of maxKeysInMap() works to get highest set length
@@ -787,45 +789,6 @@ void HVI::stageThree(std::map<int, int> &playerToSetValues, int len)
 
 
 
-
-
-/*
- * Generic function to find duplicates elements in vector.
- * It adds the duplicate elements and their duplication count in given map countMap
- */
-template <typename T>
-void HVI::findDuplicates(std::vector<T> &vecOfElements, std::map<T, int> &countMap)
-{
-    // Iterate over the vector and store the frequency of each element in map
-    for (auto &elem : vecOfElements)
-    {
-        auto result = countMap.insert(std::pair<T, int>(elem, 1));
-        if (result.second == false)
-            result.first->second++;
-    }
-    // Remove the elements from Map which has 1 frequency count
-    for (auto it = countMap.begin(); it != countMap.end();)
-    {
-        if (it->second == 1)
-            it = countMap.erase(it);
-        else
-            it++;
-    }
-}
-
-
-// MAKE THIS FUNCTION REDUNDANT AS IT ONLY WORKS FOR PAIRS. REPLACE WITH CONVERTACE() FUNCTION BELOW INSTEAD
-void HVI::changeAce(std::map<int, int> &duplicates)
-{
-	// change a pair of aces to have value 14
-    std::map<int, int>::iterator it;
-    it = duplicates.find(1);
-    if (it != duplicates.end())
-    {
-    	duplicates.erase(1);
-    	duplicates.insert({14, 2});
-    }
-}
 
 
 
@@ -922,7 +885,7 @@ bool HVI::checkIfSetExists(std::vector<int> &inpVec)
 	std::map<int, int> duplicateElements;
 
 	// Get the duplicate elements of the board cards
-   	findDuplicates(inpVec, duplicateElements);
+   	HandValue::findDuplicates(inpVec, duplicateElements);
 
    	int sizeMap = duplicateElements.size();
 
@@ -941,7 +904,7 @@ bool HVI::checkIfSpecificSetExist(std::vector<int> &inpVec, int len)
 	std::map<int, int> duplicateElements;
 
 	// Get the duplicate elements of the board cards
-   	findDuplicates(inpVec, duplicateElements);
+   	HandValue::findDuplicates(inpVec, duplicateElements);
 
 
    	for (auto elem : duplicateElements)
@@ -964,7 +927,7 @@ bool HVI::checkPairExistence(std::vector<int> inpVec, int value)
 	std::map<int, int> duplicateElements;
 
 	// Get the duplicate elements of the inpVec
-	findDuplicates(inpVec, duplicateElements);
+	HandValue::findDuplicates(inpVec, duplicateElements);
 
 
 	// have found the pair in question
@@ -987,15 +950,14 @@ void HVI::setTopAndBottomPair(std::map<int, int> &playerToTopPairValues, std::ma
 		std::cout << "round " << i << std::endl;
 		std::map<int, int> duplicateElements;
 
+		// convert Ace values to be 14 not 1
+		convertAce(drawPlayersCardsAValue[i]);
+
     	// Get the duplicate elements in vector of each players cards in turn
-    	findDuplicates(drawPlayersCardsAValue[i], duplicateElements);
+    	HandValue::findDuplicates(drawPlayersCardsAValue[i], duplicateElements);
 
     	int topPair = -1;
     	int bottomPair = -2;
-
-
-    	// change a pair of aces to have value 14. Player cannot have more than 1 pair of aces
-    	changeAce(duplicateElements); // could probably change to the convertAce() functions
 
 
     	// get max key in duplicate elements
@@ -1048,7 +1010,7 @@ std::vector<int> HVI::getStraightCards(std::vector<int> thisPlayersCardsAValue)
 	std::map<int, int> duplicateElements;
 
 	// Get the duplicate elements in vector
-	findDuplicates(thisPlayersCardsAValue, duplicateElements);
+	HandValue::findDuplicates(thisPlayersCardsAValue, duplicateElements);
 
 	int numSets = duplicateElements.size();
 
